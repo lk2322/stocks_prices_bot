@@ -1,0 +1,5 @@
+peewee~=3.16.3
+SQLAlchemy~=1.4.49
+yfinance~=0.2.29
+aiohttp~=3.8.5
+aiogram~=3.1.0

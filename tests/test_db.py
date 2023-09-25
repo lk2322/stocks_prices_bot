@@ -1,9 +1,12 @@
+import os
+
 import pytest
 
 from src.db import add_person, add_ticker, get_tickers, remove_ticker, initialize_db, get_person
 
 
 def test_initialize_db():
+    print(os.getenv("DB_URL"))
     initialize_db()
 
 
