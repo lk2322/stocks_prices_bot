@@ -4,13 +4,13 @@ import sqlalchemy
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.types import Message, BotCommand
 from aiogram.utils.markdown import hbold
 import yfinance as yf
-from .config import TOKEN
+from config import TOKEN
 import aiohttp
 
-from .db import add_ticker, get_tickers, add_person, remove_ticker, initialize_db
+from db import add_ticker, get_tickers, add_person, remove_ticker, initialize_db
 
 dp = Dispatcher()
 
@@ -36,7 +36,11 @@ async def command_start_handler(message: Message) -> None:
 
 @dp.message(Command('get'))
 async def get_handler(message: Message) -> None:
-    stock = message.text.split(' ')[1].upper()
+    try:
+        stock = message.text.split(' ')[1].upper()
+    except IndexError:
+        await message.answer("Use /get {name/ticker}")
+        return
     ticker = await get_ticker(stock)
     stock = yf.Ticker(ticker)
     await message.answer(
@@ -45,7 +49,11 @@ async def get_handler(message: Message) -> None:
 
 @dp.message(Command('save'))
 async def add_ticker_handler(message: Message) -> None:
-    ticker = message.text.split(' ')[1].upper()
+    try:
+        ticker = message.text.split(' ')[1].upper()
+    except IndexError:
+        await message.answer("Use /save {name/ticker}")
+        return
     ticker = await get_ticker(ticker)
     add_ticker(message.from_user.id, ticker)
     await message.answer(f'{hbold(ticker)} was added to your list of tickers')
@@ -62,7 +70,12 @@ async def get_tickers_handler(message: Message) -> None:
 
 @dp.message(Command('remove'))
 async def remove_ticker_handler(message: Message) -> None:
-    ticker = message.text.split(' ')[1].upper()
+    try:
+        ticker = message.text.split(' ')[1].upper()
+    except IndexError:
+        await message.answer("Use /remove {ticker}")
+        return
+
     remove_ticker(message.from_user.id, ticker)
     await message.answer(f'{hbold(ticker)} was removed from your list of tickers')
 
@@ -70,6 +83,11 @@ async def remove_ticker_handler(message: Message) -> None:
 async def main() -> None:
     initialize_db()
     bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+    await bot.set_my_commands([BotCommand(command="/start", description="Start"),
+                               BotCommand(command="/get", description="Get information about stock"),
+                               BotCommand(command="/save", description="Save stock"),
+                               BotCommand(command="/favorites", description="Get saved stocks"),
+                               BotCommand(command="/remove", description="Remove saved stocks")])
     await dp.start_polling(bot)
 
 

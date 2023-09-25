@@ -1,5 +1,5 @@
 from peewee import *
-from .config import DB_URL
+from config import DB_URL
 
 db = SqliteDatabase(DB_URL)
 
